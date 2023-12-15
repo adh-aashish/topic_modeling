@@ -2,19 +2,24 @@ import re
 import csv
 import ast
 import gensim
-from gensim import models
+from gensim import models,corpora
 import pandas as pd
 import snowballstemmer
 from nepalitokenizer import NepaliTokenizer
 import glob
 import os
 import base64
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+import numpy as np
+import shortuuid
 
 # global variables section
 if __name__=="utils":
     nepali_stopwords = open("../resources/stopwords.txt", "r")
     stopwords = nepali_stopwords.read().split()
     lda_model = models.ldamodel.LdaModel.load('../saved_model/lda_model_politics_1')
+    id2word = corpora.Dictionary.load('../saved_model/dictionary_1')
     df = pd.read_csv("../data/news-setopati/news-setopati-processed.csv")
     stemmer = snowballstemmer.NepaliStemmer()
     tokenize = NepaliTokenizer()
@@ -81,20 +86,23 @@ def store_top_five_news(lda_model) -> bool:
 
 
 
-def clear_folder(folder_path:str='./generated_info'):
+def clear_folder(folder_path:str='./generated_info/word_clouds'):
     # print(folder_path+'*')
     files = glob.glob(folder_path+'/*')
     for f in files:
         os.remove(f)
     return {"success":True,"files":files}
 
-def images_to_base64_list(folder_path:str='./generated_info/'):
+def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None):
     # print('!!!!!!!!!!!!!!!!!!!!!!')
     # print(os.listdir(folder_path))
     # print(folder_path)
     # print('!!!!!!!!!!!!!!!!!!!!!!')
     # this way works for base64 encoded image
-    img_paths = [folder_path+'/'+i for i in os.listdir(folder_path)]
+    if file_path:
+        img_paths = [file_path]
+    else:
+        img_paths = [folder_path+'/'+i for i in os.listdir(folder_path)]
     # print(img_paths)
     encoded_imgs = []
     for image_path in img_paths:
@@ -104,3 +112,48 @@ def images_to_base64_list(folder_path:str='./generated_info/'):
             encoded_imgs.append(data)
     
     return encoded_imgs
+
+
+def get_topics_bar_chart_by_percentage(topic_distribution):
+    fig, ax = plt.subplots()
+    topics = ['Topic-'+str(idx) for idx, score in topic_distribution]
+    score = [score * 100 for idx, score in topic_distribution]
+    num_bars = len(topic_distribution)
+    random_colors = [np.random.rand(3,) for _ in range(num_bars)]
+
+    ax.bar(topics, score, color=random_colors)
+
+    ax.set_ylabel('Topic percentage in Document')
+    ax.set_title('Constituent percentage of topics in a Document')
+    ax.legend(title='Percentage')
+
+    plt.savefig('./generated_info/topic_dis_percentage.png',
+                bbox_inches='tight')
+    image = images_to_base64_list(
+        file_path='./generated_info/topic_dis_percentage.png')[0]
+    return image
+
+
+def get_processed_data(df):
+    df['body'] = df['body'].apply(str)
+    processed_data = string_manipulation(df)
+    processed_data = processed_data['body'].to_list()[0]
+    processed_data = tokenize.tokenizer(processed_data)
+    processed_data = get_stem(processed_data, stemmer)
+    processed_data = clean_data(processed_data, stopwords)
+    return processed_data
+
+
+def get_imgs_of_topics_word_cloud(top_topics_in_a_doc):
+    list_of_images = []
+    for i in top_topics_in_a_doc:
+        topic_in_dict_form = dict(lda_model.show_topic(i[0], 20))
+        plt.axis('off')
+        plt.imshow(
+            WordCloud(font_path="../resources/Mangal.ttf").fit_words(topic_in_dict_form))
+        random_img_name = shortuuid.uuid()+'.png'
+        random_img_path = f'./generated_info/word_clouds/{random_img_name}'
+        plt.savefig(random_img_path, bbox_inches='tight')
+    list_of_images = images_to_base64_list(
+        folder_path='./generated_info/word_clouds/')
+    return list_of_images

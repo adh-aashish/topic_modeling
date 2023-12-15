@@ -20,3 +20,5 @@ __pycache__/
 # test files
 backend/test/
 backend/__pycache__
+notebook/image.png
+backend/generated_info/

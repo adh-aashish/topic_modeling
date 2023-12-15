@@ -1,25 +1,44 @@
-# from fastapi import FastAPI
-# from fastapi.responses import JSONResponse
-from flask import Flask 
-from flask import request
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+# from flask import Flask 
+# from flask import request
 from pydantic import BaseModel
-from gensim import models,corpora
+from gensim import models
 import pandas as pd
 import os
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
-import shortuuid
+
 from utils import *
 import json
+import matplotlib.pyplot as plt
+import numpy as np
+from fastapi.middleware.cors import CORSMiddleware
 
-# app = FastAPI()
-app = Flask(__name__)
+
+app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+class Document(BaseModel):
+    content : str
+
+# app = Flask(__name__)
 
 @app.get('/')
 def get_all_topics():
     topics = lda_model.print_topics(-1)
     print(topics)
-    return json.dumps({"message":topics})
+    return {"message":topics}
 
 @app.get('/top_five_news')
 def get_top_five_news_in_each_topic():
@@ -32,46 +51,49 @@ def get_top_five_news_in_each_topic():
         results = {}
         for index, row in df.iterrows():
             results[row['topic_id']]= [row['news1'],row['news2'],row['news3'],row['news4'],row['news5']]
-        return json.dumps({"message":results,"success":True})
+        return {"message":results,"success":True}
     else:
-        return json.dumps({"message":"Error to store top 5 documents","success":False})
+        return {"message":"Error to store top 5 documents","success":False}
 
-@app.route('/info',methods=['POST'])
-def document_info():
-    print(json.loads(request.data))
-    return json.dumps({})
+@app.post('/info')
+def document_info(doc:Document):
+    """
+    - Input: A News Document
+    - Output: A Json in following format
+
+    - {
+       - "topic_word_clouds": list_of_images_in_base64_encoded, 
+       - "topics_by_percentage":one_image_in_base64_encoded, 
+       - "success": True
+    - }
+
+    """
     # preoperations
-    # clear_folder()
-    # # doc = doc.content
-    # df = pd.DataFrame(columns=['body'])
-    # df.loc[0] = [doc]
-    # df['body'] = df['body'].apply(str)
-    # processed_data = string_manipulation(df)
-    # processed_data = processed_data['body'].to_list()[0]
-    # processed_data = tokenize.tokenizer(processed_data)
-    # processed_data = get_stem(processed_data,stemmer)
-    # processed_data = clean_data(processed_data,stopwords)
-    # # 
-    # id2word = corpora.Dictionary.load('../saved_model/dictionary_1')
-    # bow_vector = id2word.doc2bow(processed_data)
-    # top_topics_in_a_doc = sorted(lda_model[bow_vector], key=lambda tup: -1*tup[1])
-    # list_of_images = []
-    # for i in top_topics_in_a_doc:
-    #     topic_in_dict_form = dict(lda_model.show_topic(i[0],20))
-    #     plt.axis('off')
-    #     plt.imshow(WordCloud(font_path="../resources/Mangal.ttf").fit_words(topic_in_dict_form))
-    #     random_img_name = shortuuid.uuid()+'.png'
-    #     random_img_path = f'./generated_info/{random_img_name}'
-    #     # plt.savefig(random_img_path, bbox_inches='tight')
-    # # list_of_images =  images_to_base64_list()
+    clear_folder()
+    doc = doc.content
     
-    # return json.dumps({"message": list_of_images, "top_topics": top_topics_in_a_doc, "success": True})
+    df = pd.DataFrame(columns=['body'])
+    df.loc[0] = [doc]
+    processed_data = get_processed_data(df)
+    bow_vector = id2word.doc2bow(processed_data)
+    top_topics_in_a_doc = sorted(lda_model[bow_vector], key=lambda tup: -1*tup[1])
+    
+    list_of_images = get_imgs_of_topics_word_cloud(top_topics_in_a_doc)
+    
+    topic_dis_img = get_topics_bar_chart_by_percentage(top_topics_in_a_doc)
+    # return {"message": doc}
+    # with open('test.txt','w') as f:
+    #     f.write(topic_dis_img)
+    return {"topic_word_clouds": list_of_images, "topics_by_percentage":topic_dis_img, "success": True}
 
-# test api routes
-@app.get("/getimages")
+
+
+
+# test api routes [ not called by client but just for testing purposes in backend ]
+@app.get("/getimages",deprecated=True)
 def get_image():
     encoded_imgs = images_to_base64_list('./generated_info') 
-    return json.dumps({'result': encoded_imgs})
+    return JSONResponse({'result': encoded_imgs})
 
     # the below works------------ 
     # zip_buffer = io.BytesIO()
@@ -88,15 +110,12 @@ def get_image():
     # the above works------------ 
     
     # return []
-    
-@app.get('/clean_folder')
-def clean_folder(folder_path:str='./generated_info'):
-# print(folder_path+'*')
+
+
+@app.get('/clean_folder',deprecated=True)
+def clean_folder(folder_path: str = './generated_info/word_clouds'):
+    # print(folder_path+'*')
     files = glob.glob(folder_path+'/*')
     for f in files:
         os.remove(f)
-    return json.dumps({"success":True,"files":files})
-
-
-# if __name__=="__main__":
-#     app.run(host="0.0.0.0",port="5000",debug=True)
+    return {"success": True, "files": files}
