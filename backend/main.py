@@ -31,6 +31,16 @@ app.add_middleware(
 
 class Document(BaseModel):
     content : str
+    
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "content": "सन् २०२० को डिसेम्बर २९ मा हमासका सबै समूहका नेता इस्माइल हानियाले गाजाका विभिन्न सशस्त्र गुटहरूबीच बलियो सन्देश र एकताको सङ्केत को रूपमा पिलर छद्म नाम दिइएको चारमध्ये पहिलो सैन्य अभ्यास गर्ने घोषणा गरे। हमास गाजाको सबैभन्दा शक्तिशाली सशस्त्र समूह थियो। अन्य १० प्यालेस्टिनी समूह पनि सम्मिलित गठबन्धन हमास प्रमुख घटक थियो। ती लडाकु समूहहरू युद्धको खेलजस्तो अभ्यासमा सहभागी भए। त्यसलाई संयुक्त अपरेशन कक्षले निगरानी गरेको थियो। गाजाका सशस्त्र गुटहरूसँग एउटा केन्द्रीय कमान्डअन्तर्गत समन्वय गर्न सन् २०१८ मा उक्त संरचना बनाइएको थियो। सन् २०१८ अघि हमासले प्यालेस्टिनी इस्लामिक जिहाद (पीआईजे) सँग समन्वय गरेको थियो। पीआईजे गाजाको दोस्रो ठूलो सशस्त्र गुट हो। ब्रिटेन र अन्य देशमा उक्त सङ्गठनलाई हमासलाई जसरी नै प्रतिबन्धित आतङ्कवादी सङ्गठनका रूपमा हेरिन्छ। पहिलाका द्वन्द्वमा पनि हमासले अरू समूहहरूसँग मिलेर लडाइँ गरेको थियो। तर २०२० को अभ्यासलाई धेरै समूह एकजुट भएको प्रमाणको रूपमा प्रचारबाजी गरियो। हमास नेताले पहिलो अभ्यासले सशस्त्र समूहहरूको स्थायी तत्परता प्रतिबिम्बित गरेको बताएका थिए। तीन वर्षमा गरिएका चारवटा संयुक्त अभ्यासमध्ये सन् २०२० को अभ्यास पहिलो थियो। विभिन्न सामाजिक सञ्जालहरूमा ती सबैसँग सम्बन्धित भिडिओहरू छन्। सन्देश आदानप्रदान गर्ने एप टेलिग्राममा प्रेषित फुटेजका अनुसार स्ट्रङ पिलर अभ्यासमा सहभागी भएका पीआईजेसहित १० वटा लडाकु समूहलाई टाउकोमा बाँध्ने पट्टी र चिह्नका आधारमा बीबीसीले स्पष्टसँग पहिचान गरेको छ।"
+                }
+            ]
+        }
+    }
 
 # app = Flask(__name__)
 
@@ -62,7 +72,8 @@ def document_info(doc:Document):
     - Output: A Json in following format
 
     - {
-       - "topic_word_clouds": list_of_images_in_base64_encoded, 
+       - "similar_news": [ [ 'title1','data1','link1','source1' ] , [ 'title2','data2','link2','source2' ] ]
+       - "topic_word_clouds": [ [ score1, image1_in_base64_encoded ], [ score2, image2_in_base64_encoded ] ], 
        - "topics_by_percentage":one_image_in_base64_encoded, 
        - "success": True
     - }
@@ -77,15 +88,14 @@ def document_info(doc:Document):
     processed_data = get_processed_data(df)
     bow_vector = id2word.doc2bow(processed_data)
     top_topics_in_a_doc = sorted(lda_model[bow_vector], key=lambda tup: -1*tup[1])
-    
+    top_topics_in_a_doc = [(i, j) for i, j in top_topics_in_a_doc if j > 0.08]
     list_of_images = get_imgs_of_topics_word_cloud(top_topics_in_a_doc)
     
     topic_dis_img = get_topics_bar_chart_by_percentage(top_topics_in_a_doc)
-    # return {"message": doc}
-    # with open('test.txt','w') as f:
-    #     f.write(topic_dis_img)
-    return {"topic_word_clouds": list_of_images, "topics_by_percentage":topic_dis_img, "success": True}
+    similar_news = get_similar_news(bow_vector)
 
+    # return {"similar_news": similar_news}
+    return {"similar_news":similar_news,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img, "success": True}
 
 
 
