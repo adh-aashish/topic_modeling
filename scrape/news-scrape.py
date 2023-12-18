@@ -5,7 +5,7 @@ import sys
 import chardet
 
 if len(sys.argv) != 2:
-    print('Usage: python3 news-srape.py <annapurna|gorkhapatra>')
+    print('Usage: python3 news-srape.py <annapurna|gorkhapatra|setopati>')
     sys.exit(1)
     
 choosen = sys.argv[1]
@@ -113,30 +113,30 @@ elif choosen == "setopati":
     # IMP/TODO: the \xao character is a lot inside the text of this setopati, that 
     # means the space character as said but if it impacts,need to take care of that 
     # thing.
-    initial_page = 201
-    final_page = 500
+    initial_page = 1
+    final_page = 2
     scraped_link = []
     count = initial_page
     for i in range(initial_page,final_page+1):
-        try:
-            response = requests.get(f'https://www.setopati.com/politics?page={i}').text
-            soup = BeautifulSoup(response,'lxml')
-            if count == initial_page:
-                # since the big item news is repeated 
-                # in setopati across pages.
-                big_item_link = soup.find('div',class_='big-feature').a['href']
-                scraped_link.append(big_item_link)
-            bishesh = soup.find_all('div',class_='bishesh')
-            for i in bishesh:
-                items = i.find_all('div',class_='items')
-                for j in items:
-                    link = j.a['href']
-                    scraped_link.append(link)
-            print(f'Setopati page:{count} done.')
-            count+=1
-        except Exception as e:
-            print(f'Exception occurred on setopati at page: {count}')
-            continue
+        # try:
+        response = requests.get(f'https://www.setopati.com/politics?page={i}').text
+        soup = BeautifulSoup(response,'lxml')
+        if count == initial_page:
+            # since the big item news is repeated 
+            # in setopati across pages.
+            big_item_link = soup.find('div',class_='big-feature').a['href']
+            scraped_link.append(big_item_link)
+        bishesh = soup.find_all('div',class_='bishesh')
+        for i in bishesh:
+            items = i.find_all('div',class_='items')
+            for j in items:
+                link = j.a['href']
+                scraped_link.append(link)
+        print(f'Setopati page:{count} done.')
+        count+=1
+        # except Exception as e:
+        #     print(f'Exception occurred on setopati at page: {count}')
+        #     continue
     # print(scraped_link)
     # sys.exit(0)
     scraped_news = []
@@ -162,7 +162,7 @@ elif choosen == "setopati":
             print('Exception occurred in scraping news (setopati) in count = ',count )
             continue
         
-    with open('news-setopati.csv', 'a', encoding='UTF8') as f:
+    with open('news-setopati_1.csv', 'w', encoding='UTF8') as f:
         writer = csv.writer(f)
         try:
             writer.writerow(('topic', 'date', 'title', 'body'))
