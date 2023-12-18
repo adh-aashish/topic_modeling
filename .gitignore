@@ -21,5 +21,4 @@ __pycache__/
 backend/test/
 backend/__pycache__
 notebook/image.png
-backend/generated_info/
 requirements-backup.txt
