@@ -9,6 +9,7 @@ import snowballstemmer
 from nepalitokenizer import NepaliTokenizer
 import glob
 import os
+from os import path
 import base64
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
@@ -28,6 +29,7 @@ if __name__=="utils":
     df = pd.read_csv("../data/news-setopati/news_setopati_preprocessed_1.csv")
     stemmer = snowballstemmer.NepaliStemmer()
     tokenize = NepaliTokenizer()
+    NUM_TOP_DOCS = 8
     
     # reading bow_corpus
     file_path = '../saved_model/bow_corpus_2.txt'
@@ -68,36 +70,38 @@ def return_bow(index):
     x = ast.literal_eval(x.strip())
     return x
 
-def store_top_five_news(lda_model) -> bool:
+
+def store_top_news_per_topic():
     try:
-        bow_corpus = read_bow_corpus()
-        my_ids = [i for i in range(len(bow_corpus))]
-        top_documents = {}
-        [top_documents.setdefault(i, []) for i in range(lda_model.num_topics)]
-
-        for topic_id in range(lda_model.num_topics):
-            tops = sorted(zip(my_ids, lda_model[bow_corpus]), reverse=True, key=lambda x: abs(
-                dict(x[1]).get(topic_id, 0.0)))
-            top_five = tops[: 5]
-            for index, _ in top_five:
-                top_documents[topic_id].append(index)
-
-        with open('../saved_model/top_five_doc.txt','w',encoding='UTF8') as file:
-            writer = csv.writer(file)
-            header =["topic_id","news1","news2","news3","news4","news5"]
-            # write the header
-            writer.writerow(header)
-            for k,v in top_documents.items():
-                top_news = [k]
-                for index in v:
-                    top_news.append(df['title'][index])
-                writer.writerow(top_news)
+        # NUM_TOP_DOCS variable is set above as constant
+        cluster_by_topic = {}
+        [cluster_by_topic.setdefault(i, []) for i in range(lda_model.num_topics)]
+        index = 0
+        num_of_docs = df.shape[0]
+        for i in range(num_of_docs):
+            bow = return_bow(i)
+            topics_list = lda_model.get_document_topics(bow, minimum_probability=0.8)
+            for topic_id, score in topics_list:
+                cluster_by_topic[topic_id].append((index,score))
+            index += 1
+        
+        top_docs = []
+        for i in cluster_by_topic:
+            curr_top_docs = cluster_by_topic[i]
+            # Sort the list by the second element of each tuple in descending order
+            curr_top_docs = sorted(curr_top_docs, key=lambda tup: tup[1], reverse=True)[0:NUM_TOP_DOCS]
+            cluster_by_topic[i] = curr_top_docs
+            for index,score in curr_top_docs:
+                top_docs.append([i,score,df['title'][index], df['date'][index],df['link'][index], df['source'][index]])
+            
+        result_df = pd.DataFrame(top_docs, columns=[
+                        'topic_no', 'score', 'title', 'date', 'link', 'source'])
+        result_df.to_csv('./generated_info/top_news_per_topic.csv',index=False)
     except Exception as e:
-        print('Exception caught, it is: ',e)
+        if path.exists('./generated_info/top_news_per_topic.csv'):
+            os.remove('./generated_info/top_news_per_topic.csv')
         return False
-    print('Success in storing top 5 news headlines')
     return True
-
 
 
 def clear_folder(folder_path:str='./generated_info/word_clouds'):

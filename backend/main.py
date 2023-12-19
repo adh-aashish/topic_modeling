@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from gensim import models
 import pandas as pd
 import os
-
+from os import path
 from utils import *
 import json
 import matplotlib.pyplot as plt
@@ -81,7 +81,7 @@ def get_all_topics():
     word_clouds = [(idx+1,val[1]) for idx,val in enumerate(img_info)]
     return {"success":True,"word_clouds":word_clouds}
 
-@app.get('/top_five_news')
+@app.get('/top_five_news',deprecated=True)
 def get_top_five_news_in_each_topic():
     file_path = "../saved_model/top_five_doc.txt"
     success = True
@@ -130,6 +130,20 @@ def document_info(doc:Document):
     else:
         return {"success":False}
 
+@app.get('/topics/{id}')
+def top_news_of_topic(id: int):
+    file_path = './generated_info/top_news_per_topic.csv'
+    if not path.exists(file_path):
+        # create that file
+        success = store_top_news_per_topic()
+        if not success:
+            return {"success":False}
+    
+    news_df = pd.read_csv('./generated_info/top_news_per_topic.csv')
+    curr_topic_df = news_df[news_df['topic_no'] == id]
+    result = curr_topic_df.to_dict(orient='records')
+    return {"success": True, "topic_id":id, "top_news": result}
+    
 
 
 # test api routes [ not called by client but just for testing purposes in backend ]
