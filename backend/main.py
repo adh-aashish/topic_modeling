@@ -46,9 +46,40 @@ class Document(BaseModel):
 
 @app.get('/')
 def get_all_topics():
-    topics = lda_model.print_topics(-1)
-    print(topics)
-    return {"message":topics}
+    # topics = lda_model.print_topics(-1)
+    # logging.critical(lda_model.num_topics)
+    """
+    - Input: GET request in '/'
+    - Output: A Json in following format
+
+    - {
+       - "success": True
+       - "word_clouds": [ [Topic Number, Topic Word Cloud],... for all topics ]
+    - }
+
+    """
+    
+    # set following to False if new model trained or folder images deleted
+    word_cloud_generated = True
+    if not word_cloud_generated:
+        success = clear_folder(folder_path='./generated_info/word_clouds_training_data')
+        logging.critical(f'success: {success}')
+        if success:
+            for i in range(lda_model.num_topics):
+                topic_in_dict_form = dict(lda_model.show_topic(i, 20))
+                plt.axis('off')
+                plt.imshow(
+                    WordCloud(font_path="../resources/Mangal.ttf").fit_words(topic_in_dict_form))
+                img_path = f'./generated_info/word_clouds_training_data/Topic-{i+1}.png'
+                plt.savefig(img_path, bbox_inches='tight')
+        else:
+            return {"success":False,"word_clouds":[]}
+        
+    img_info = images_to_base64_list(
+        folder_path='./generated_info/word_clouds_training_data/')
+    
+    word_clouds = [(idx+1,val[1]) for idx,val in enumerate(img_info)]
+    return {"success":True,"word_clouds":word_clouds}
 
 @app.get('/top_five_news')
 def get_top_five_news_in_each_topic():
@@ -80,22 +111,24 @@ def document_info(doc:Document):
 
     """
     # preoperations
-    clear_folder()
-    doc = doc.content
-    
-    df = pd.DataFrame(columns=['body'])
-    df.loc[0] = [doc]
-    processed_data = get_processed_data(df)
-    bow_vector = id2word.doc2bow(processed_data)
-    top_topics_in_a_doc = sorted(lda_model[bow_vector], key=lambda tup: -1*tup[1])
-    top_topics_in_a_doc = [(i, j) for i, j in top_topics_in_a_doc if j > 0.08]
-    list_of_images = get_imgs_of_topics_word_cloud(top_topics_in_a_doc)
-    
-    topic_dis_img = get_topics_bar_chart_by_percentage(top_topics_in_a_doc)
-    similar_news = get_similar_news(bow_vector)
-
-    # return {"similar_news": similar_news}
-    return {"similar_news":similar_news,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img, "success": True}
+    success = clear_folder()
+    if success:
+        doc = doc.content
+        
+        df = pd.DataFrame(columns=['body'])
+        df.loc[0] = [doc]
+        processed_data = get_processed_data(df)
+        bow_vector = id2word.doc2bow(processed_data)
+        top_topics_in_a_doc = sorted(lda_model[bow_vector], key=lambda tup: -1*tup[1])
+        top_topics_in_a_doc = [(i, j) for i, j in top_topics_in_a_doc if j > 0.08]
+        list_of_images = get_imgs_of_topics_word_cloud(top_topics_in_a_doc)
+        
+        topic_dis_img = get_topics_bar_chart_by_percentage(top_topics_in_a_doc)
+        similar_news = get_similar_news(bow_vector)
+        # return {"top_topics":tuple(top_topics_in_a_doc)}
+        return {"success": True,"similar_news":similar_news,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img}
+    else:
+        return {"success":False}
 
 
 

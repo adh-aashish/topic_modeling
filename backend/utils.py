@@ -102,32 +102,23 @@ def store_top_five_news(lda_model) -> bool:
 
 def clear_folder(folder_path:str='./generated_info/word_clouds'):
     # print(folder_path+'*')
-    files = glob.glob(folder_path+'/*')
-    for f in files:
-        os.remove(f)
-    return {"success":True,"files":files}
+    try:
+        files = glob.glob(folder_path+'/*')
+        for f in files:
+            os.remove(f)
+    except Exception as e:
+        return False
+    return True
 
 def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None):
-    # print('!!!!!!!!!!!!!!!!!!!!!!')
-    # print(os.listdir(folder_path))
-    # print(folder_path)
-    # print('!!!!!!!!!!!!!!!!!!!!!!')
-    # this way works for base64 encoded image
     if file_path:
         img_paths = [file_path]
     else:
         img_paths = [folder_path+i for i in os.listdir(folder_path)]
-    # print('-----------')
-    # print(img_paths)
-    # print('-----------')
+
     encoded_imgs = [] # [(score, encoded_image)]
-    # encoded_imgs_path = []
     for image_path in img_paths:
-        # encoded_imgs.append(get_response_image(image_path))
-        # if folder_path:
-        #     score = map_image_path_score[image_path]
-        # else:
-        #     score = ''
+
         with open(image_path,'rb') as imgfile:
             data = base64.b64encode(imgfile.read()).decode('utf-8')
             if folder_path:
@@ -135,8 +126,6 @@ def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None
                 # encoded_imgs_path.append(image_path)
             else:
                 encoded_imgs.append(data)
-    # if folder_path:
-    #     return encoded_imgs_path,encoded_imgs
     return encoded_imgs
 
 
@@ -184,7 +173,7 @@ def get_imgs_of_topics_word_cloud(top_topics_in_a_doc):
         plt.savefig(random_img_path, bbox_inches='tight')
         map_image_path_score[random_img_path] = i[1]
     
-        img_info = images_to_base64_list(
+    img_info = images_to_base64_list(
         folder_path='./generated_info/word_clouds/')
     
     for i in range(len(img_info)):
@@ -196,8 +185,8 @@ def get_imgs_of_topics_word_cloud(top_topics_in_a_doc):
 
     # print(sorted_img_info)
 
-    score_values = [i for i,j in sorted_img_info]
-    logging.critical(score_values)
+    # score_values = [i for i,j in sorted_img_info]
+    # logging.critical(score_values)
     return sorted_img_info
 
 
