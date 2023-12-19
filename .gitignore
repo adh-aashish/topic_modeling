@@ -22,3 +22,5 @@ backend/test/
 backend/__pycache__
 notebook/image.png
 requirements-backup.txt
+backend/generated_info/
+backend/file.log
