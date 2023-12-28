@@ -78,7 +78,7 @@ def get_all_topics():
     img_info = images_to_base64_list(
         folder_path='./generated_info/word_clouds_training_data/')
     
-    word_clouds = [(idx+1,val[1]) for idx,val in enumerate(img_info)]
+    word_clouds = [(idx,val[1]) for idx,val in enumerate(img_info)]
     return {"success":True,"word_clouds":word_clouds}
 
 @app.get('/top_five_news',deprecated=True)
