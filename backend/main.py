@@ -71,6 +71,7 @@ def get_all_topics():
                 plt.imshow(
                     WordCloud(font_path="../resources/Mangal.ttf").fit_words(topic_in_dict_form))
                 img_path = f'./generated_info/word_clouds_training_data/Topic-{i+1}.png'
+                # map_img_path_idx[img_path] = i+1
                 plt.savefig(img_path, bbox_inches='tight')
         else:
             return {"success":False,"word_clouds":[]}
@@ -78,7 +79,7 @@ def get_all_topics():
     img_info = images_to_base64_list(
         folder_path='./generated_info/word_clouds_training_data/')
     
-    word_clouds = [(idx,val[1]) for idx,val in enumerate(img_info)]
+    word_clouds = [(idx+1,val[1]) for idx,val in enumerate(img_info)]
     return {"success":True,"word_clouds":word_clouds}
 
 @app.get('/top_five_news',deprecated=True)
