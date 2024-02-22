@@ -56,7 +56,6 @@ def get_all_topics():
        - "success": True
        - "word_clouds": [ [Topic Number, Topic Word Cloud],... for all topics ]
     - }
-
     """
     
     # set following to False if new model trained or folder images deleted
@@ -78,7 +77,9 @@ def get_all_topics():
     img_info = images_to_base64_list(
         folder_path='./generated_info/word_clouds_training_data/')
     
-    word_clouds = [(idx+1,val[1]) for idx,val in enumerate(img_info)]
+    word_clouds = [(idx-1,val) for _,val,idx in img_info]
+    
+    word_clouds = sorted(word_clouds, key=lambda x: x[0])
     return {"success":True,"word_clouds":word_clouds}
 
 @app.get('/top_five_news',deprecated=True)
@@ -110,6 +111,7 @@ def document_info(doc:Document):
     - }
 
     """
+    
     # preoperations
     success = clear_folder()
     if success:
@@ -121,6 +123,7 @@ def document_info(doc:Document):
         bow_vector = id2word.doc2bow(processed_data)
         top_topics_in_a_doc = sorted(lda_model[bow_vector], key=lambda tup: -1*tup[1])
         top_topics_in_a_doc = [(i, j) for i, j in top_topics_in_a_doc if j > 0.08]
+        #  list_of_images for a document is [ [highest_score, topic1], [ next_highest_score, topic2]]
         list_of_images = get_imgs_of_topics_word_cloud(top_topics_in_a_doc)
         
         topic_dis_img = get_topics_bar_chart_by_percentage(top_topics_in_a_doc)
@@ -129,6 +132,7 @@ def document_info(doc:Document):
         return {"success": True,"similar_news":similar_news,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img}
     else:
         return {"success":False}
+
 
 @app.get('/topics/{id}')
 def top_news_of_topic(id: int):
@@ -142,9 +146,9 @@ def top_news_of_topic(id: int):
     news_df = pd.read_csv('./generated_info/top_news_per_topic.csv')
     curr_topic_df = news_df[news_df['topic_no'] == id]
     result = curr_topic_df.to_dict(orient='records')
+    print(result)
     return {"success": True, "topic_id":id, "top_news": result}
     
-
 
 # test api routes [ not called by client but just for testing purposes in backend ]
 @app.get("/getimages",deprecated=True)

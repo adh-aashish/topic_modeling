@@ -119,21 +119,31 @@ def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None
         img_paths = [file_path]
     else:
         img_paths = [folder_path+i for i in os.listdir(folder_path)]
+        print('-------######-------')
+        img_idxs = [int((re.search(r'\d+', i.split('/')[-1].split('-')[-1])).group()) for i in img_paths]
+        print(img_idxs)
+        print('-------######-------')
 
     encoded_imgs = [] # [(score, encoded_image)]
-    for image_path in img_paths:
+    for i in range(len(img_paths)):
 
-        with open(image_path,'rb') as imgfile:
+        with open(img_paths[i],'rb') as imgfile:
             data = base64.b64encode(imgfile.read()).decode('utf-8')
             if folder_path:
-                encoded_imgs.append([image_path, data])
+                encoded_imgs.append([img_paths[i], data, img_idxs[i]])
                 # encoded_imgs_path.append(image_path)
             else:
                 encoded_imgs.append(data)
+    print(np.asarray(encoded_imgs).shape)
+    # print(encoded_imgs)
     return encoded_imgs
 
 
 def get_topics_bar_chart_by_percentage(topic_distribution):
+    """
+    Given top_topic_distribution of a news document, return a barchart image of top topics ,where score
+    is greater than 0.05
+    """
     fig, ax = plt.subplots()
     topics = ['Topic-'+str(idx) for idx, score in topic_distribution if score > 0.05]
     score = [score * 100 for idx, score in topic_distribution if score > 0.05 ]
