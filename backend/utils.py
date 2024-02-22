@@ -177,21 +177,27 @@ def get_processed_data(df):
 
 def get_imgs_of_topics_word_cloud(top_topics_in_a_doc):
     map_image_path_score ={}
+    idx_list = []
     for i in top_topics_in_a_doc:
         topic_in_dict_form = dict(lda_model.show_topic(i[0], 20))
+        idx_list.append(i[0])
         plt.axis('off')
         plt.imshow(
             WordCloud(font_path="../resources/Mangal.ttf").fit_words(topic_in_dict_form))
         random_img_name = shortuuid.uuid()+'.png'
         random_img_path = f'./generated_info/word_clouds/{random_img_name}'
         plt.savefig(random_img_path, bbox_inches='tight')
-        map_image_path_score[random_img_path] = i[1]
+        map_image_path_score[random_img_path] = [i[0],i[1]]
     
     img_info = images_to_base64_list(
         folder_path='./generated_info/word_clouds/')
     
+    count = 0
     for i in range(len(img_info)):
-        img_info[i][0] = float(map_image_path_score[img_info[i][0]])
+        img_info[i].append(int(map_image_path_score[img_info[i][0]][0]))
+        img_info[i][0] = float(map_image_path_score[img_info[i][0]][1])
+        # img_info[i].append(idx_list[count])
+        count+=1
         
     # now sort to make first image to have highest score
     # l = [[0.4, 'a'], [0.5, 'c'], [0.87, 'c']]
