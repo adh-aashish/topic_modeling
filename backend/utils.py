@@ -80,7 +80,8 @@ def return_bow(index):
     #         bow_corpus.append(ast.literal_eval(line.strip()))
     # return bow_corpus
     x = bow_corpus[index]
-    x = ast.literal_eval(x.strip())
+    # x = ast.literal_eval(x.strip())
+    # print(x)
     return x
 
 
@@ -91,13 +92,17 @@ def store_top_news_per_topic():
         [cluster_by_topic.setdefault(i, []) for i in range(lda_model.num_topics)]
         index = 0
         num_of_docs = df.shape[0]
+        
+        print('Fine till here')
         for i in range(num_of_docs):
+            print(f'Fine till here = {i}')
             bow = return_bow(i)
+            
             topics_list = lda_model.get_document_topics(bow, minimum_probability=0.8)
             for topic_id, score in topics_list:
                 cluster_by_topic[topic_id].append((index,score))
             index += 1
-        
+        # print('Fine till here')
         top_docs = []
         for i in cluster_by_topic:
             curr_top_docs = cluster_by_topic[i]
@@ -109,10 +114,12 @@ def store_top_news_per_topic():
             
         result_df = pd.DataFrame(top_docs, columns=[
                         'topic_no', 'score', 'title', 'date', 'link', 'source'])
-        result_df.to_csv('./generated_info/top_news_per_topic.csv',index=False)
+        result_df.to_csv(
+            './generated_info/top_news_per_topic_26_topics_setopati_1.csv', index=False)
     except Exception as e:
-        if path.exists('./generated_info/top_news_per_topic.csv'):
-            os.remove('./generated_info/top_news_per_topic.csv')
+        if path.exists('./generated_info/top_news_per_topic_26_topics_setopati_1.csv'):
+            os.remove(
+                './generated_info/top_news_per_topic_26_topics_setopati_1.csv')
         return False
     return True
 

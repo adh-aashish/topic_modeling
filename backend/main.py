@@ -59,7 +59,7 @@ def get_all_topics():
     """
     
     # set following to False if new model trained or folder images deleted
-    word_cloud_generated = False
+    word_cloud_generated = True
     if not word_cloud_generated:
         success = clear_folder(folder_path='./generated_info/word_clouds_training_data')
         logging.critical(f'success: {success}')
@@ -124,9 +124,9 @@ def document_info(doc:Document):
         top_topics_in_a_doc = sorted(lda_model[bow_vector], key=lambda tup: -1*tup[1])
         top_topics_in_a_doc = [(i, j) for i, j in top_topics_in_a_doc if j > 0.08]
         #  list_of_images for a document is [ [highest_score, topic1], [ next_highest_score, topic2]]
-        print('Fine till here')
+
         list_of_images = get_imgs_of_topics_word_cloud(top_topics_in_a_doc)
-        print('Fine till here 1')
+
         topic_dis_img = get_topics_bar_chart_by_percentage(top_topics_in_a_doc)
         similar_news = get_similar_news(bow_vector)
         # return {"top_topics":tuple(top_topics_in_a_doc)}
@@ -137,14 +137,14 @@ def document_info(doc:Document):
 
 @app.get('/topics/{id}')
 def top_news_of_topic(id: int):
-    file_path = './generated_info/top_news_per_topic.csv'
+    file_path = './generated_info/top_news_per_topic_26_topics_setopati_1.csv'
     if not path.exists(file_path):
         # create that file
         success = store_top_news_per_topic()
         if not success:
             return {"success":False}
     
-    news_df = pd.read_csv('./generated_info/top_news_per_topic.csv')
+    news_df = pd.read_csv('./generated_info/top_news_per_topic_26_topics_setopati_1.csv')
     curr_topic_df = news_df[news_df['topic_no'] == id]
     result = curr_topic_df.to_dict(orient='records')
     print(result)
