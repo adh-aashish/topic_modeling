@@ -270,7 +270,7 @@ def get_similar_news(bow_vector):
     required_info = []
     # print(most_sim_ids)
     for ids in most_sim_ids:
-        info = [df['title'][ids],df['date'][ids],df['link'][ids],df['source'][ids]]
+        info = {'title': df['title'][ids],'date':df['date'][ids],'link':df['link'][ids],'source':df['source'][ids]}
         required_info.append(info)
     
     
