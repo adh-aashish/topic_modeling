@@ -78,7 +78,7 @@ def get_all_topics():
     img_info = images_to_base64_list(
         folder_path='./generated_info/word_clouds_training_data/')
     
-    word_clouds = [(idx-1,val) for _,val,idx in img_info]
+    word_clouds = [(idx,val) for _,val,idx in img_info]
     
     word_clouds = sorted(word_clouds, key=lambda x: x[0])
     return {"success":True,"word_clouds":word_clouds}
@@ -106,7 +106,7 @@ def document_info(doc:Document):
 
     - {
        - "similar_news": [ [ 'title1','data1','link1','source1' ] , [ 'title2','data2','link2','source2' ] ]
-       - "topic_word_clouds": [ [ score1, image1_in_base64_encoded ], [ score2, image2_in_base64_encoded ] ], 
+       - "topic_word_clouds": [ [ score1, image1_in_base64_encoded, index1 ], [ score2, image2_in_base64_encoded, index2 ] ], 
        - "topics_by_percentage":one_image_in_base64_encoded, 
        - "success": True
     - }
@@ -117,7 +117,6 @@ def document_info(doc:Document):
     success = clear_folder()
     if success:
         doc = doc.content
-        
         df = pd.DataFrame(columns=['body'])
         df.loc[0] = [doc]
         processed_data = get_processed_data(df)
@@ -125,8 +124,9 @@ def document_info(doc:Document):
         top_topics_in_a_doc = sorted(lda_model[bow_vector], key=lambda tup: -1*tup[1])
         top_topics_in_a_doc = [(i, j) for i, j in top_topics_in_a_doc if j > 0.08]
         #  list_of_images for a document is [ [highest_score, topic1], [ next_highest_score, topic2]]
+
         list_of_images = get_imgs_of_topics_word_cloud(top_topics_in_a_doc)
-        
+
         topic_dis_img = get_topics_bar_chart_by_percentage(top_topics_in_a_doc)
         similar_news = get_similar_news(bow_vector)
         # return {"top_topics":tuple(top_topics_in_a_doc)}
@@ -137,14 +137,14 @@ def document_info(doc:Document):
 
 @app.get('/topics/{id}')
 def top_news_of_topic(id: int):
-    file_path = './generated_info/top_news_per_topic.csv'
+    file_path = './generated_info/top_news_per_topic_26_topics_setopati_1.csv'
     if not path.exists(file_path):
         # create that file
         success = store_top_news_per_topic()
         if not success:
             return {"success":False}
     
-    news_df = pd.read_csv('./generated_info/top_news_per_topic.csv')
+    news_df = pd.read_csv('./generated_info/top_news_per_topic_26_topics_setopati_1.csv')
     curr_topic_df = news_df[news_df['topic_no'] == id]
     result = curr_topic_df.to_dict(orient='records')
     print(result)

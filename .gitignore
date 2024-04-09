@@ -26,3 +26,5 @@ backend/generated_info/word_clouds/*
 backend/topic_dis_percentage.png
 backend/file.log
 
+# files
+*.csv

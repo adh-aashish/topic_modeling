@@ -19,23 +19,36 @@ import logging
 from scipy.stats import entropy
 from scipy.spatial import distance
 
+import sys
+# Get the absolute path of the current script
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Navigate to the parent directory
+parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
+
+# Add the parent directory to the Python path
+sys.path.append(parent_dir)
+
+from notebooks.load_variables import load_data
+
 # global variables section
 if __name__=="utils":
     logging.basicConfig(level=logging.CRITICAL, filename='./file.log',filemode='w', format='%(levelname)s - %(message)s')
     nepali_stopwords = open("../resources/stopwords.txt", "r")
     stopwords = nepali_stopwords.read().split()
-    lda_model = models.ldamodel.LdaModel.load('../saved_model/lda_model_politics_2')
-    id2word = corpora.Dictionary.load('../saved_model/dictionary_2')
+    # lda_model = models.ldamodel.LdaModel.load('../saved_model/lda_model_politics_2')
+    processed_data, bow_corpus, id2word, lda_model = load_data(relative_path='../notebooks/results/')
+    # id2word = corpora.Dictionary.load('../saved_model/dictionary_2')
     df = pd.read_csv("../data/news-setopati/news_setopati_preprocessed_1.csv")
     stemmer = snowballstemmer.NepaliStemmer()
     tokenize = NepaliTokenizer()
     NUM_TOP_DOCS = 8
     
-    # reading bow_corpus
-    file_path = '../saved_model/bow_corpus_2.txt'
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-    bow_corpus = pd.Series(lines, name='body')
+    # reading bow_corpus [ PAST way before modularizing by load_variables.py ]
+    # file_path = '../saved_model/bow_corpus_2.txt'
+    # with open(file_path, 'r') as file:
+    #     lines = file.readlines()
+    # bow_corpus = pd.Series(lines, name='body')
 
 # important functions
 
@@ -67,7 +80,8 @@ def return_bow(index):
     #         bow_corpus.append(ast.literal_eval(line.strip()))
     # return bow_corpus
     x = bow_corpus[index]
-    x = ast.literal_eval(x.strip())
+    # x = ast.literal_eval(x.strip())
+    # print(x)
     return x
 
 
@@ -78,13 +92,17 @@ def store_top_news_per_topic():
         [cluster_by_topic.setdefault(i, []) for i in range(lda_model.num_topics)]
         index = 0
         num_of_docs = df.shape[0]
+        
+        print('Fine till here')
         for i in range(num_of_docs):
+            print(f'Fine till here = {i}')
             bow = return_bow(i)
+            
             topics_list = lda_model.get_document_topics(bow, minimum_probability=0.8)
             for topic_id, score in topics_list:
                 cluster_by_topic[topic_id].append((index,score))
             index += 1
-        
+        # print('Fine till here')
         top_docs = []
         for i in cluster_by_topic:
             curr_top_docs = cluster_by_topic[i]
@@ -96,10 +114,12 @@ def store_top_news_per_topic():
             
         result_df = pd.DataFrame(top_docs, columns=[
                         'topic_no', 'score', 'title', 'date', 'link', 'source'])
-        result_df.to_csv('./generated_info/top_news_per_topic.csv',index=False)
+        result_df.to_csv(
+            './generated_info/top_news_per_topic_26_topics_setopati_1.csv', index=False)
     except Exception as e:
-        if path.exists('./generated_info/top_news_per_topic.csv'):
-            os.remove('./generated_info/top_news_per_topic.csv')
+        if path.exists('./generated_info/top_news_per_topic_26_topics_setopati_1.csv'):
+            os.remove(
+                './generated_info/top_news_per_topic_26_topics_setopati_1.csv')
         return False
     return True
 
@@ -121,7 +141,7 @@ def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None
         img_paths = [folder_path+i for i in os.listdir(folder_path)]
         print('-------######-------')
         img_idxs = [int((re.search(r'\d+', i.split('/')[-1].split('-')[-1])).group()) for i in img_paths]
-        print(img_idxs)
+        print('Inside func: images_to_base64_list: ', img_idxs)
         print('-------######-------')
 
     encoded_imgs = [] # [(score, encoded_image)]
@@ -130,11 +150,11 @@ def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None
         with open(img_paths[i],'rb') as imgfile:
             data = base64.b64encode(imgfile.read()).decode('utf-8')
             if folder_path:
-                encoded_imgs.append([img_paths[i], data, img_idxs[i]])
+                encoded_imgs.append([img_paths[i], data, img_idxs[i]-1])
                 # encoded_imgs_path.append(image_path)
             else:
                 encoded_imgs.append(data)
-    print(np.asarray(encoded_imgs).shape)
+    # print(encoded_imgs)
     # print(encoded_imgs)
     return encoded_imgs
 
@@ -194,7 +214,7 @@ def get_imgs_of_topics_word_cloud(top_topics_in_a_doc):
     
     count = 0
     for i in range(len(img_info)):
-        img_info[i].append(int(map_image_path_score[img_info[i][0]][0]))
+        img_info[i][2] = int(map_image_path_score[img_info[i][0]][0])
         img_info[i][0] = float(map_image_path_score[img_info[i][0]][1])
         # img_info[i].append(idx_list[count])
         count+=1
@@ -235,7 +255,7 @@ def get_similar_news(bow_vector):
     Give bow_vector of a news, then get its similar other news from trained dataset of ~40k news from setopati
     '''
     # used jensen shannon distance to calculate similar documents
-    df_doc_topic = pd.read_csv('../saved_model/doc_topic_distribution_39k.csv')
+    df_doc_topic = pd.read_csv('../saved_model/doc_topic_distribution_39k_26topics.csv')
     doc_distribution = df_doc_topic.values.tolist()
     # bow_vector = id2word.doc2bow(processed_news)
     new_dist = []
@@ -250,7 +270,7 @@ def get_similar_news(bow_vector):
     required_info = []
     # print(most_sim_ids)
     for ids in most_sim_ids:
-        info = [df['title'][ids],df['date'][ids],df['link'][ids],df['source'][ids]]
+        info = {'title': df['title'][ids],'date':df['date'][ids],'link':df['link'][ids],'source':df['source'][ids]}
         required_info.append(info)
     
     
