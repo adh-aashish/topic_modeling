@@ -148,7 +148,8 @@ def top_news_of_topic(id: int):
     curr_topic_df = news_df[news_df['topic_no'] == id]
     result = curr_topic_df.to_dict(orient='records')
     print(result)
-    return {"success": True, "topic_id":id, "top_news": result}
+    topic_trend_img = get_topic_trend_image(id)
+    return {"success": True, "topic_id":id, "top_news": result, "topic_trend":topic_trend_img}
     
 
 # test api routes [ not called by client but just for testing purposes in backend ]
