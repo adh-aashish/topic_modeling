@@ -39,7 +39,8 @@ if __name__=="utils":
     # lda_model = models.ldamodel.LdaModel.load('../saved_model/lda_model_politics_2')
     processed_data, bow_corpus, id2word, lda_model = load_data(relative_path='../notebooks/results/')
     # id2word = corpora.Dictionary.load('../saved_model/dictionary_2')
-    df = pd.read_csv("../data/news-setopati/news_setopati_preprocessed_1.csv")
+    # df = pd.read_csv("../data/news-setopati/news_setopati_preprocessed_1.csv")
+    df = pd.read_csv("../data/news-setopati/news_setopati_40k_year_month.csv")
     stemmer = snowballstemmer.NepaliStemmer()
     tokenize = NepaliTokenizer()
     NUM_TOP_DOCS = 8

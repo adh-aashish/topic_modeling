@@ -135,7 +135,7 @@ def document_info(doc:Document):
         return {"success":False}
 
 @app.get('/topics/{id}')
-def top_news_of_topic(id: int, sort: str):
+def top_news_of_topic(id: int, sort: str|None = None):
     file_path = './generated_info/top_news_per_topic_26_topics_setopati_1.csv'
     if not path.exists(file_path):
         # create that file
