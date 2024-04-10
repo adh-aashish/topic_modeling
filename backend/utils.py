@@ -86,6 +86,7 @@ def return_bow(index):
 
 
 def store_top_news_per_topic():
+    # VVI : TODO: need to put year, month column in df [ Did this in test-top-news-per-topic.ipynb manually but need to include that functionality here too. ]
     try:
         # NUM_TOP_DOCS variable is set above as constant
         cluster_by_topic = {}

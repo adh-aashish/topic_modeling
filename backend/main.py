@@ -134,9 +134,8 @@ def document_info(doc:Document):
     else:
         return {"success":False}
 
-
 @app.get('/topics/{id}')
-def top_news_of_topic(id: int):
+def top_news_of_topic(id: int, sort: str):
     file_path = './generated_info/top_news_per_topic_26_topics_setopati_1.csv'
     if not path.exists(file_path):
         # create that file
@@ -146,16 +145,21 @@ def top_news_of_topic(id: int):
     
     news_df = pd.read_csv('./generated_info/top_news_per_topic_26_topics_setopati_1.csv')
     curr_topic_df = news_df[news_df['topic_no'] == id]
-    result = curr_topic_df.to_dict(orient='records')
-    print(result)
+    if sort == "date" :
+        curr_topic_df = curr_topic_df.sort_values(by='Year', ascending=False)
+        result = curr_topic_df.to_dict(orient='records')
+    else:
+        # this is sort = "relevance" or garbage if entered by user
+        result = curr_topic_df.to_dict(orient='records')
+
     topic_trend_img = get_topic_trend_image(id)
     return {"success": True, "topic_id":id, "top_news": result, "topic_trend":topic_trend_img}
     
-
 @app.get('/topic_dis_of_all_news')
 def topic_distribution_of_all_news():
     # till now this is gotten by running on setopati_preprocessed_1 i.e first dataset 
-    return images_to_base64_list(f'../notebooks/results/topic_distribution_of_40k_data.png')[0]
+    img = images_to_base64_list(f'../notebooks/results/topic_distribution_of_40k_data.png')[0]
+    return {"success":True, "img":img}
 
 # test api routes [ not called by client but just for testing purposes in backend ]
 @app.get("/getimages",deprecated=True)
