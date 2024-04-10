@@ -278,10 +278,11 @@ def get_similar_news(bow_vector):
     # print(most_sim_ids)
     count = 0
     for ids in most_sim_ids:
-        info = {'title': df['title'][ids],'date':df['date'][ids],'link':df['link'][ids],'source':df['source'][ids], 'score' : (1 - scores[count]) }
+        info = {'title': df['title'][ids],'date':df['date'][ids],'link':df['link'][ids],'source':df['source'][ids], 'score' : (1 - scores[count]), 'Year':df['Year'][ids] }
         required_info.append(info)
         count += 1
     
+    required_info.sort(key = lambda x: x.Year, reverse=True)
     
     return required_info
 
