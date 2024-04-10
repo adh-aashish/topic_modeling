@@ -134,6 +134,9 @@ def clear_folder(folder_path:str='./generated_info/word_clouds'):
         return False
     return True
 
+def get_topic_trend_image(id):
+    return images_to_base64_list(f'../notebooks/results/visualization/per_topic_trend/{id}.png')[0]
+    
 def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None):
     if file_path:
         img_paths = [file_path]
