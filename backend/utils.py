@@ -250,7 +250,9 @@ def get_most_similar_documents(query,matrix,k=10):
     and retruns the top k indices of the smallest jensen shannon distances
     """
     sims = jensen_shannon(query,matrix) # list of jensen shannon distances
-    return sims.argsort()[:k] # the top k positional index of the smallest Jensen Shannon distances
+    sorted_index = sims.argsort()[:k]
+    sorted_score = sims[sorted_index]
+    return sorted_index, sorted_score # the top k positional index of the smallest Jensen Shannon distances
 
 
 
@@ -268,14 +270,16 @@ def get_similar_news(bow_vector):
 
     new_doc_distribution = np.array(new_dist)
     
-    most_sim_ids = get_most_similar_documents(new_doc_distribution,doc_distribution)
+    most_sim_ids, scores = get_most_similar_documents(new_doc_distribution,doc_distribution)
 
 
     required_info = []
     # print(most_sim_ids)
+    count = 0
     for ids in most_sim_ids:
-        info = {'title': df['title'][ids],'date':df['date'][ids],'link':df['link'][ids],'source':df['source'][ids]}
+        info = {'title': df['title'][ids],'date':df['date'][ids],'link':df['link'][ids],'source':df['source'][ids], 'score' : (1 - scores[count]) }
         required_info.append(info)
+        count += 1
     
     
     return required_info
