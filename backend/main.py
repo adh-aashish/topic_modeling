@@ -111,8 +111,7 @@ def document_info(doc:Document, sort: str|None = None):
        - "success": True
     - }
 
-    """
-    
+    """   
     # preoperations
     success = clear_folder()
     if success:
@@ -132,10 +131,9 @@ def document_info(doc:Document, sort: str|None = None):
             similar_news = get_similar_news(bow_vector,sort)
         else:
             similar_news = get_similar_news(bow_vector, 'relevance')
-        print('Working till now')
-        # return {"top_topics":tuple(top_topics_in_a_doc)}
-        # return {"success": True,"similar_news":similar_news,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img}
-        return {"success": True,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img}
+
+        return {"success": True,"similar_news":similar_news,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img} 
+
     else:
         return {"success":False}
 
