@@ -144,8 +144,12 @@ def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None
         img_paths = [file_path]
     else:
         img_paths = [folder_path+i for i in os.listdir(folder_path)]
+        print(img_paths)
         print('-------######-------')
-        img_idxs = [int((re.search(r'\d+', i.split('/')[-1].split('-')[-1])).group()) for i in img_paths]
+        try:
+            img_idxs = [int((re.search(r'\d+', i.split('/')[-1].split('-')[-1])).group()) for i in img_paths]
+        except Exception as e:
+            pass
         print('Inside func: images_to_base64_list: ', img_idxs)
         print('-------######-------')
 
@@ -257,7 +261,7 @@ def get_most_similar_documents(query,matrix,k=10):
 
 
 
-def get_similar_news(bow_vector):
+def get_similar_news(bow_vector,sorting_criteria):
     '''
     Give bow_vector of a news, then get its similar other news from trained dataset of ~40k news from setopati
     '''
@@ -281,8 +285,10 @@ def get_similar_news(bow_vector):
         info = {'title': df['title'][ids],'date':df['date'][ids],'link':df['link'][ids],'source':df['source'][ids], 'score' : (1 - scores[count]), 'Year':df['Year'][ids] }
         required_info.append(info)
         count += 1
-    
-    required_info.sort(key = lambda x: x.Year, reverse=True)
+    if sorting_criteria == "date":
+        # otherwise by default it is sorted by score as we used argsort() function in another function above.
+        # required_info.sort(key = lambda x: x['Year'], reverse=True)
+        pass
     
     return required_info
 

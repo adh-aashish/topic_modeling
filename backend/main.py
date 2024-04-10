@@ -99,7 +99,7 @@ def get_top_five_news_in_each_topic():
         return {"message":"Error to store top 5 documents","success":False}
 
 @app.post('/info')
-def document_info(doc:Document):
+def document_info(doc:Document, sort: str|None = None):
     """
     - Input: A News Document
     - Output: A Json in following format
@@ -128,9 +128,14 @@ def document_info(doc:Document):
         list_of_images = get_imgs_of_topics_word_cloud(top_topics_in_a_doc)
 
         topic_dis_img = get_topics_bar_chart_by_percentage(top_topics_in_a_doc)
-        similar_news = get_similar_news(bow_vector)
+        if sort == "date":
+            similar_news = get_similar_news(bow_vector,sort)
+        else:
+            similar_news = get_similar_news(bow_vector, 'relevance')
+        print('Working till now')
         # return {"top_topics":tuple(top_topics_in_a_doc)}
-        return {"success": True,"similar_news":similar_news,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img}
+        # return {"success": True,"similar_news":similar_news,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img}
+        return {"success": True,"topic_word_clouds": tuple(list_of_images), "topics_by_percentage":topic_dis_img}
     else:
         return {"success":False}
 
