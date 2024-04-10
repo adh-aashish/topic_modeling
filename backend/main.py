@@ -152,6 +152,11 @@ def top_news_of_topic(id: int):
     return {"success": True, "topic_id":id, "top_news": result, "topic_trend":topic_trend_img}
     
 
+@app.get('/topic_dis_of_all_news')
+def topic_distribution_of_all_news():
+    # till now this is gotten by running on setopati_preprocessed_1 i.e first dataset 
+    return images_to_base64_list(f'../notebooks/results/topic_distribution_of_40k_data.png')[0]
+
 # test api routes [ not called by client but just for testing purposes in backend ]
 @app.get("/getimages",deprecated=True)
 def get_image():
