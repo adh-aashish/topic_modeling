@@ -39,7 +39,8 @@ if __name__=="utils":
     # lda_model = models.ldamodel.LdaModel.load('../saved_model/lda_model_politics_2')
     processed_data, bow_corpus, id2word, lda_model = load_data(relative_path='../notebooks/results/')
     # id2word = corpora.Dictionary.load('../saved_model/dictionary_2')
-    df = pd.read_csv("../data/news-setopati/news_setopati_preprocessed_1.csv")
+    # df = pd.read_csv("../data/news-setopati/news_setopati_preprocessed_1.csv")
+    df = pd.read_csv("../data/news-setopati/news_setopati_40k_year_month.csv")
     stemmer = snowballstemmer.NepaliStemmer()
     tokenize = NepaliTokenizer()
     NUM_TOP_DOCS = 8
@@ -143,6 +144,7 @@ def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None
         img_paths = [file_path]
     else:
         img_paths = [folder_path+i for i in os.listdir(folder_path)]
+        print(img_paths)
         print('-------######-------')
         img_idxs = [int((re.search(r'\d+', i.split('/')[-1].split('-')[-1])).group()) for i in img_paths]
         print('Inside func: images_to_base64_list: ', img_idxs)
@@ -208,23 +210,26 @@ def get_imgs_of_topics_word_cloud(top_topics_in_a_doc):
         plt.axis('off')
         plt.imshow(
             WordCloud(font_path="../resources/Mangal.ttf").fit_words(topic_in_dict_form))
-        random_img_name = shortuuid.uuid()+'.png'
-        random_img_path = f'./generated_info/word_clouds/{random_img_name}'
-        plt.savefig(random_img_path, bbox_inches='tight')
-        map_image_path_score[random_img_path] = [i[0],i[1]]
+        # random_img_name = shortuuid.uuid()+'.png'
+        img_name = f'Topic-{i[0]+1}.png'
+        img_path = f'./generated_info/word_clouds/{img_name}'
+        plt.savefig(img_path, bbox_inches='tight')
+        map_image_path_score[img_path] = [i[0],i[1]]
     
     img_info = images_to_base64_list(
         folder_path='./generated_info/word_clouds/')
     
     count = 0
     for i in range(len(img_info)):
+        # id
         img_info[i][2] = int(map_image_path_score[img_info[i][0]][0])
+        # score
         img_info[i][0] = float(map_image_path_score[img_info[i][0]][1])
         # img_info[i].append(idx_list[count])
         count+=1
         
     # now sort to make first image to have highest score
-    # l = [[0.4, 'a'], [0.5, 'c'], [0.87, 'c']]
+    # [ score, data(img_encoded), index_of_topic ]
     sorted_img_info = sorted(img_info, key=lambda x: x[0], reverse=True)
 
     # print(sorted_img_info)
@@ -256,7 +261,7 @@ def get_most_similar_documents(query,matrix,k=10):
 
 
 
-def get_similar_news(bow_vector):
+def get_similar_news(bow_vector,sorting_criteria):
     '''
     Give bow_vector of a news, then get its similar other news from trained dataset of ~40k news from setopati
     '''
@@ -277,10 +282,12 @@ def get_similar_news(bow_vector):
     # print(most_sim_ids)
     count = 0
     for ids in most_sim_ids:
-        info = {'title': df['title'][ids],'date':df['date'][ids],'link':df['link'][ids],'source':df['source'][ids], 'score' : (1 - scores[count]) }
+        info = {'title': df['title'][ids],'date':df['date'][ids],'link':df['link'][ids],'source':df['source'][ids], 'score' : (1 - scores[count]), 'Year':int(df['Year'][ids]) }
         required_info.append(info)
         count += 1
-    
+    if sorting_criteria == "date":
+        # otherwise by default it is sorted by score as we used argsort() function in another function above.
+        required_info.sort(key = lambda x: x['Year'], reverse=True)
     
     return required_info
 
