@@ -117,10 +117,10 @@ topics_idx = range(topics_num)
 # Trend of each topics over the years
 ######################################
 
-# for year in years:
-#     year_data = document_count_by_year[year]
-#     topic_count = [count[1] for count in year_data]
-#     plt.plot(topics_idx, topic_count, label=str(year))
+for year in years:
+    year_data = document_count_by_year[year]
+    topic_count = [count[1] for count in year_data]
+    plt.plot(topics_idx, topic_count, label=str(year))
 
 # plt.xlabel('Topic idx')
 # plt.ylabel('Document Frequency')
