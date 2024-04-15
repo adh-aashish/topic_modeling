@@ -85,12 +85,12 @@ def get_all_topics():
 
 @app.get('/top_five_news',deprecated=True)
 def get_top_five_news_in_each_topic():
-    file_path = "../saved_model/top_five_doc.txt"
+    file_path = "./generated_info/top_five_doc.txt"
     success = True
     if not os.path.exists(file_path):
         success = store_top_five_news()
     if success:   
-        df = pd.read_csv('../saved_model/top_five_doc.txt')
+        df = pd.read_csv('./generated_info/top_five_doc.txt')
         results = {}
         for index, row in df.iterrows():
             results[row['topic_id']]= [row['news1'],row['news2'],row['news3'],row['news4'],row['news5']]
@@ -161,7 +161,7 @@ def top_news_of_topic(id: int, sort: str|None = None):
 @app.get('/topic_dis_of_all_news')
 def topic_distribution_of_all_news():
     # till now this is gotten by running on setopati_preprocessed_1 i.e first dataset 
-    img = images_to_base64_list(f'../notebooks/results/topic_distribution_of_40k_data.png')[0]
+    img = images_to_base64_list(f'../core/results/visualization/topic_distribution_of_40k_data.png')[0]
     return {"success":True, "img":img}
 
 # test api routes [ not called by client but just for testing purposes in backend ]

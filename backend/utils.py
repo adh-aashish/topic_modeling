@@ -29,7 +29,7 @@ parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 # Add the parent directory to the Python path
 sys.path.append(parent_dir)
 
-from notebooks.load_variables import load_data
+from core.utils.load_variables import load_data, load_lda_bow
 
 # global variables section
 if __name__=="utils":
@@ -37,7 +37,8 @@ if __name__=="utils":
     nepali_stopwords = open("../resources/stopwords.txt", "r")
     stopwords = nepali_stopwords.read().split()
     # lda_model = models.ldamodel.LdaModel.load('../saved_model/lda_model_politics_2')
-    processed_data, bow_corpus, id2word, lda_model = load_data(relative_path='../notebooks/results/')
+    processed_data, bow_corpus, id2word = load_data(relative_path='../core/results/')
+    lda_model = load_lda_bow(relative_path='../core/results/')  
     # id2word = corpora.Dictionary.load('../saved_model/dictionary_2')
     # df = pd.read_csv("../data/news-setopati/news_setopati_preprocessed_1.csv")
     df = pd.read_csv("../data/news-setopati/news_setopati_40k_year_month.csv")
@@ -137,7 +138,7 @@ def clear_folder(folder_path:str='./generated_info/word_clouds'):
     return True
 
 def get_topic_trend_image(id):
-    return images_to_base64_list(f'../notebooks/results/visualization/per_topic_trend/{id}.png')[0]
+    return images_to_base64_list(f'../core/results/visualization/per_topic_trend/{id}.png')[0]
     
 def images_to_base64_list(file_path:str|None = None, folder_path:str | None=None):
     if file_path:
@@ -266,7 +267,7 @@ def get_similar_news(bow_vector,sorting_criteria):
     Give bow_vector of a news, then get its similar other news from trained dataset of ~40k news from setopati
     '''
     # used jensen shannon distance to calculate similar documents
-    df_doc_topic = pd.read_csv('../saved_model/doc_topic_distribution_39k_26topics.csv')
+    df_doc_topic = pd.read_csv('../core/results/analysis/doc_topic_distribution_39k_26topics.csv')
     doc_distribution = df_doc_topic.values.tolist()
     # bow_vector = id2word.doc2bow(processed_news)
     new_dist = []
