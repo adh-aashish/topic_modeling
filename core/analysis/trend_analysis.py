@@ -129,7 +129,7 @@ for year in years:
 # plt.title('Trend of each topics over the years')
 # plt.legend(title='Year')
 # plt.grid(True)
-# plt.savefig("./results/visualization/document_count_per_year.png")
+# plt.savefig("../results/visualization/document_count_per_year.png")
 
 ####################################
 # Per Topic Trend over the years 
