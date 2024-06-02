@@ -41,10 +41,9 @@ def create_id2word_bow_corpus_and_train(new_model_run=False):
         print('bowcorpus is made')    
         #------For training the model---------------
 
-        topic_num = 22
         max_coherence = 0
         max_coherence_topic = None
-        for topic_num in range(24, 40, 2):
+        for topic_num in range(20, 40, 2):
             model_file_name = "../results/models/bow_"+str(topic_num)
 
             '''
@@ -55,11 +54,13 @@ def create_id2word_bow_corpus_and_train(new_model_run=False):
             '''
             Training the model
             '''
+            print(f'-------------- Training started of Model for Number of topics = {topic_num} -----------------')
             lda_model = gensim.models.LdaMulticore(
                 bow_corpus, num_topics=topic_num, id2word=id2word, passes=20)
             # saving the model
             lda_model.save(model_file_name)
-
+            print(f'-------------- Training completed for Model for Number of topics={topic_num} -------------- ')
+            
             '''
             Saving the topics 
             '''

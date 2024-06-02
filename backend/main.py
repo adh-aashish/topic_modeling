@@ -303,7 +303,7 @@ def update_news_dataset():
     if success:
         return {"success": True, "message": f"Successfully updated dataset upto Nepali Date: {nepali_datetime.date.today()}"}
     else:
-        return {"success":False,"message":"Failed to update dataset."}
+        return {"success":False,"message":"Failed to update dataset. Retry"}
 
 @app.get('/last_update')
 def updated_news_dataset_time():
