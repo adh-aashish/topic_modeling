@@ -30,6 +30,9 @@ parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(parent_dir)
 
 from core.utils.load_variables import load_data, load_lda_bow
+from core.training.lda_bow import create_id2word_bow_corpus_and_train
+from core.utils.preprocessing import preprocess_and_save_pkl
+
 
 # global variables section
 if __name__=="utils":
@@ -39,9 +42,10 @@ if __name__=="utils":
     # lda_model = models.ldamodel.LdaModel.load('../saved_model/lda_model_politics_2')
     processed_data, bow_corpus, id2word = load_data(relative_path='../core/results/')
     lda_model = load_lda_bow(relative_path='../core/results/')  
-    # id2word = corpora.Dictionary.load('../saved_model/dictionary_2')
-    # df = pd.read_csv("../data/news-setopati/news_setopati_preprocessed_1.csv")
-    df = pd.read_csv("../data/news-setopati/news_setopati_40k_year_month.csv")
+
+    # IMP: this was working version of last time  "Rest is same the only difference is: Month column"
+    # df = pd.read_csv("../data/news-setopati/news_setopati_40k_year_month.csv")
+    df = pd.read_csv("../data/all_news_from_jestha_20_2075_to_now.csv")
     stemmer = snowballstemmer.NepaliStemmer()
     tokenize = NepaliTokenizer()
     NUM_TOP_DOCS = 8
@@ -53,6 +57,21 @@ if __name__=="utils":
     # bow_corpus = pd.Series(lines, name='body')
 
 # important functions
+
+def train_and_update_model():
+    try:
+        preprocess_and_save_pkl()
+        create_id2word_bow_corpus_and_train(new_model_run=True)
+        return True
+        # {"max_coherence_value":max_coherence,"max_coherence_topic_num":max_coherence_topic}
+    except Exception as e:
+        print(f'Error occured at updating model: {e}')
+        return False
+    
+        
+
+
+
 
 def get_stem(words,stemmer):
     new_list = stemmer.stemWords(words)

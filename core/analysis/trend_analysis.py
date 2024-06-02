@@ -7,7 +7,7 @@ from utils.load_variables import load_lda_bow
 processed_data = pd.read_pickle("../results/processed_data.pkl")
 processed_data_list = processed_data["body"]
 
-df = pd.read_csv("../data/news-setopati/news_setopati_preprocessed_1.csv")
+df = pd.read_csv("../data/")
 
 cluster_by_topic = {}
 '''
@@ -87,11 +87,11 @@ cluster_file_path = '../results/analysis/cluster_by_year.pkl'
 # File path to save the pickle file
 
 # Open the file in binary write mode and save the dictionary using pickle.dump()
-# with open(cluster_file_path, 'wb') as f:
-#     pickle.dump(cluster_by_year, f)
+with open(cluster_file_path, 'wb') as f:
+    pickle.dump(cluster_by_year, f)
 
-with open(cluster_file_path, 'rb') as f:
-    cluster_by_year = pickle.load(f)
+# with open(cluster_file_path, 'rb') as f:
+#     cluster_by_year = pickle.load(f)
 
 document_count_by_year_path = "../results/analysis/document_count_by_year.pkl"
 

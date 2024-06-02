@@ -12,6 +12,20 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
+# import sys
+# # Get the absolute path of the current script
+# current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# # Navigate to the parent directory
+# parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
+
+# # Add the parent directory to the Python path
+# sys.path.append(parent_dir)
+
+
+from scrape.pipeline_aggregate_data import pipeline_aggregate_data,test
+
+import nepali_datetime
 
 
 app = FastAPI()
@@ -163,6 +177,30 @@ def topic_distribution_of_all_news():
     # till now this is gotten by running on setopati_preprocessed_1 i.e first dataset 
     img = images_to_base64_list(f'../core/results/visualization/topic_distribution_of_40k_data.png')[0]
     return {"success":True, "img":img}
+
+@app.get('/update_dataset')
+def update_news_dataset():
+    success = pipeline_aggregate_data()
+    if success:
+        return {"success": True, "message": f"Successfully updated dataset upto Nepali Date: {nepali_datetime.date.today()}"}
+    else:
+        return {"success":False,"message":"Failed to update dataset."}
+
+@app.get('/last_update')
+def updated_news_dataset_time():
+    df_all_news = pd.read_csv(
+        '../data/all_news_from_jestha_20_2075_to_now.csv')
+    latest_nepali_date = df_all_news.iloc[0]['date']
+    nepali_date_numerical_format = df_all_news.iloc[0]['Combined_Date']
+    return {"success": True, "latest_updated_nepali_date": latest_nepali_date, "latest_updated_nepali_date_numerical_format": nepali_date_numerical_format}
+
+@app.get('/update_model')
+def update_model():
+    success = train_and_update_model()
+    if success:
+        return {"success":True,"message":"Successfully trained and updated the model by latest data and got optimal model"}
+    else:
+        return {"success":False,"message":"Failed to train and update the model by latest data. Maybe Retry. "}
 
 # test api routes [ not called by client but just for testing purposes in backend ]
 @app.get("/getimages",deprecated=True)
