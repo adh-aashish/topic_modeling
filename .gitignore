@@ -1,6 +1,8 @@
 env/
 data/newscorpus/
 data/news-setopati
+data/news-setopati.zip
+data/newscorpus.zip
 nmf-practice.ipynb
 # Jupyter Notebook specific
 .ipynb_checkpoints/
