@@ -313,6 +313,16 @@ def updated_news_dataset_time():
     nepali_date_numerical_format = df_all_news.iloc[0]['Combined_Date']
     return {"success": True, "latest_updated_nepali_date": latest_nepali_date, "latest_updated_nepali_date_numerical_format": nepali_date_numerical_format}
 
+
+@app.get('/last_trained_time')
+def last_trained_time():
+    with open(f'../core/results/latest_nepali_date_trained.txt', 'r', encoding='utf-8') as file:
+        latest_nepali_date_trained = file.read().strip()
+    return {"success": True, "latest_nepali_date_trained":latest_nepali_date_trained}
+
+
+
+
 @app.get('/update_model')
 def update_model():
     success = train_and_update_model()
